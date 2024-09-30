@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charter Booking Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            display: inline-block;
+            margin: 0;
+        }
+        .book-btn {
+            float: right;
+            background-color: darkblue;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .radio-group, .input-group, .currency-select, .category-select {
+            margin: 15px 0;
+        }
+        label {
+            margin-right: 20px;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        input[type="date"], select, input[type="number"] {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .switch-btn, .counter-btn, .done-btn, .search-btn {
+            background-color: darkblue;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        .passenger-dropdown {
+            width: 300px;
+            position: relative;
+        }
+        .passenger-select {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .warning {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome Aboard</h1>
+        <button class="book-btn">Book Your Charter</button>
+        <p>Let's go places!</p>
+
+        <!-- Trip Type -->
+        <div class="radio-group">
+            <label><input type="radio" name="trip" value="one-way">One Way</label>
+            <label><input type="radio" name="trip" value="round-trip">Round Trip</label>
+        </div>
+
+        <!-- From/To Inputs -->
+        <div class="input-group">
+            <input type="text" placeholder="From" id="from" />
+            <button class="switch-btn" onclick="switchPlaces()">⇅</button>
+            <input type="text" placeholder="To" id="to" />
+        </div>
+
+        <!-- Departure and Return Date -->
+        <div class="input-group">
+            <label>Departure Date: <input type="date" id="departureDate"></label>
+            <label>Return Date: <input type="date" id="returnDate"></label>
+        </div>
+
+        <!-- Passenger Selection Dropdown -->
+        <div class="input-group passenger-dropdown">
+            <label>Passengers:</label>
+            <select id="passengerType" onchange="showPassengerCountOptions(this.value)">
+                <option value="">Select Passengers</option>
+                <option value="adult">Adults (12+)</option>
+                <option value="child">Children (2-12)</option>
+                <option value="infant">Infants (0-2)</option>
+            </select>
+        
+            <div id="passengerCountControls" style="display: none;">
+                <div class="passenger-select">
+                    <label id="passengerLabel"></label>
+                    <div>
+                        <button class="counter-btn" onclick="decrement()">-</button>
+                        <span id="passengerCount">0</span>
+                        <button class="counter-btn" onclick="increment()">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <p id="booking-warning" class="warning" style="display: none;">
+                    Booking for more than 9 people can only be made through our center. Call us: +1234567890
+                </p>
+            </div>
+            
+            <div>
+                <button class="done-btn" onclick="submitPassengerSelection()">Done</button>
+            </div>
+        </div>
+
+        <!-- Currency Selection -->
+        <div class="currency-select">
+            <label>Currency:</label>
+            <select id="currencySelect">
+                <option>IND</option>
+                <option>AED</option>
+                <option>USD</option>
+                <option>EUR</option>
+            </select>
+        </div>
+
+        <!-- Passenger Category -->
+        <div class="category-select">
+            <label><input type="radio" name="category" value="family"> Family & Friends</label>
+            <label><input type="radio" name="category" value="senior"> Senior Citizen</label>
+            <label><input type="radio" name="category" value="minor"> Unaccompanied Minor</label>
+            <label><input type="radio" name="category" value="students"> Students</label>
+            <label><input type="radio" name="category" value="armed"> Armed Forces</label>
+            <label><input type="radio" name="category" value="govt"> Government Employee</label>
+            <label><input type="radio" name="category" value="special"> Special Assistance</label>
+        </div>
+
+        <!-- Search Button -->
+        <button class="search-btn" onclick="searchFlight()">Search Flight</button>
+    </div>
+
+    <script>
+        let passengerCounts = {
+            adult: 0,
+            child: 0,
+            infant: 0
+        };
+
+        function increment() {
+            const passengerType = document.getElementById('passengerType').value;
+            if (passengerType) {
+                if (passengerCounts[passengerType] < 9) {
+                    passengerCounts[passengerType]++;
+                    document.getElementById('passengerCount').innerText = passengerCounts[passengerType];
+                    showWarning();
+                } else {
+                    alert('Booking for more than 9 people can only be made through our center.');
+                }
+            }
+        }
+
+        function decrement() {
+            const passengerType = document.getElementById('passengerType').value;
+            if (passengerType && passengerCounts[passengerType] > 0) {
+                passengerCounts[passengerType]--;
+                document.getElementById('passengerCount').innerText = passengerCounts[passengerType];
+                showWarning();
+            }
+        }
+
+        function getTotalPassengers() {
+            return passengerCounts.adult + passengerCounts.child + passengerCounts.infant;
+        }
+
+        function showWarning() {
+            const warning = document.getElementById('booking-warning');
+            if (getTotalPassengers() >= 9) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        function showPassengerCountOptions(value) {
+            const passengerCountControls = document.getElementById('passengerCountControls');
+            const passengerLabel = document.getElementById('passengerLabel');
+
+            if (value) {
+                passengerLabel.innerText = `Select Number of ${value.charAt(0).toUpperCase() + value.slice(1)}:`;
+                document.getElementById('passengerCount').innerText = passengerCounts[value]; // Display current count
+                passengerCountControls.style.display = 'block';
+            } else {
+                passengerCountControls.style.display = 'none';
+            }
+            showWarning();
+        }
+
+        function searchFlight() {
+            const tripType = document.querySelector('input[name="trip"]:checked')?.value || "Not specified";
+            const from = document.getElementById('from').value || "Not specified";
+            const to = document.getElementById('to').value || "Not specified";
+            const departureDate = document.getElementById('departureDate').value || "Not specified";
+            const returnDate = document.getElementById('returnDate').value || "Not specified";
+            const currency = document.getElementById('currencySelect').value || "Not specified";
+            const category = document.querySelector('input[name="category"]:checked')?.value || "Not specified";
+
+            const total = getTotalPassengers();
+            let message = `Search Details:\n`;
+            message += `Trip Type: ${tripType}\n`;
+            message += `From: ${from}\n`;
+            message += `To: ${to}\n`;
+            message += `Departure Date: ${departureDate}\n`;
+            message += `Return Date: ${returnDate}\n`;
+            message += `Currency: ${currency}\n`;
+            message += `Category: ${category}\n`;
+            message += `Total Passengers: ${total}\n`;
+
+            for (const [type, count] of Object.entries(passengerCounts)) {
+                if (count > 0) {
+                    message += `${count} ${type.charAt(0).toUpperCase() + type.slice(1)}(s)\n`;
+                }
+            }
+
+            alert(message);
+        }
+
+        function switchPlaces() {
+            const from = document.getElementById('from').value;
+            const to = document.getElementById('to').value;
+
+            document.getElementById('from').value = to;
+            document.getElementById('to').value = from;
+        }
+    </script>
+</body>
+</html>
